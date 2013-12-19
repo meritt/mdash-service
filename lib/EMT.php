@@ -3162,7 +3162,7 @@ class EMTypograph extends EMT_Base
 	 * @param string $key
 	 * @return array|false
 	 */
-	public function get_option_info($key)
+	protected function get_option_info($key)
 	{
 		if(!isset($this->all_options[$key])) return false;
 		if(is_array($this->all_options[$key])) return $this->all_options[$key];
