@@ -8,11 +8,27 @@ Download [mdash-service](https://github.com/meritt/mdash-service/archive/master.
 
 #### Configure for Nginx
 
-_TO BE DONE_
+Assume your site address is `http://mdash.local`, and the folder with to be mdash-service is `/usr/www/mdash.local` then settings will look like this.
+
+```nginx
+server {
+  listen 80;
+
+  server_name mdash.local;
+  index index.php;
+
+  location ~ index\.php$ {
+    fastcgi_pass unix:/var/run/php5-fpm.sock;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME /usr/www/mdash.local/index.php;
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+  }
+}
+```
 
 #### Configure for Apache
 
-Assume your site address is `http://mdash.local`, and the folder with to be [mdash-service](https://github.com/meritt/node-mdash) is `/usr/www/mdash.local` then settings will look like this.
+Assume your site address is `http://mdash.local`, and the folder with to be mdash-service is `/usr/www/mdash.local` then settings will look like this.
 
 ```apache
 <VirtualHost *:80>
