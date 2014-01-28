@@ -2,8 +2,8 @@
 
 /**
 * Evgeny Muravjev Typograph, http://mdash.ru
-* Version: 3.1
-* Release Date: October 27, 2013
+* Version: 3.2
+* Release Date: January 18, 2014
 * Authors: Evgeny Muravjev & Alexander Drutsa  
 */
 
@@ -666,6 +666,34 @@ class EMT_Lib
 				create_function('$m', '$r = EMT_Lib::html_char_entity_to_unicode($m[1]); return $r ? $r : $m[0];')
 				, $text);
 	}
+	
+	public static function rstrpos ($haystack, $needle, $offset = 0){
+	    
+	    if(trim($haystack) != "" && trim($needle) != "" && $offset <= mb_strlen($haystack))
+	    {
+	        $last_pos = $offset;
+	        $found = false;
+	        while(($curr_pos = mb_strpos($haystack, $needle, $last_pos)) !== false)
+	        {
+	            $found = true;
+	            $last_pos = $curr_pos + 1;
+	        }
+	        if($found)
+	        {
+	            return $last_pos - 1;
+	        }
+	        else
+	        {
+	            return false;
+	        }
+	    }
+	    else
+	    {
+	        return false;
+	    } 
+	}
+	
+
 }
 
 
@@ -1102,7 +1130,7 @@ class EMT_Tret {
 	public function ss($key)
 	{
 		if(!isset($this->settings[$key])) return "";
-		return strval($this->settings[$kk]);
+		return strval($this->settings[$key]);
 	}
 	
 	/**
@@ -1160,7 +1188,7 @@ class EMT_Tret {
 	 */
 	public function apply($list = null)
 	{
-		if(is_string($list)) $rlist = array($ist);
+		if(is_string($list)) $rlist = array($list);
 		elseif(is_array($list)) $rlist = $list;
 		else $rlist = array_keys($this->rules);
 		$this->_apply($rlist);
@@ -1340,7 +1368,7 @@ class EMT_Tret_Dash extends EMT_Tret
 		'mdash' => array(
 				'description'	=> 'Тире после кавычек, скобочек, пунктуации',
 				'pattern' 		=> array(
-						'/([a-zа-яё0-9]+|\,|\:|\)|\&(ra|ld)quo\;|\|\")(\040|\t)(—|\-|\&mdash\;)(\s|$|\<)/ui', 
+						'/([a-zа-яё0-9]+|\,|\:|\)|\&(ra|ld)quo\;|\|\"|\>)(\040|\t)(—|\-|\&mdash\;)(\s|$|\<)/ui', 
 						'/(\,|\:|\)|\")(—|\-|\&mdash\;)(\s|$|\<)/ui', 
 						),
 				'replacement' 	=> array(
@@ -1547,7 +1575,7 @@ class EMT_Tret_Nobr extends EMT_Tret
 				'replacement' 	=> '$m[1] . trim($m[3]) . "&nbsp;" . ($m[4] ? trim($m[4]) . "&nbsp;" : "") . $m[5]'
 			),
 		'nbsp_in_the_end' => array(
-				'description'	=> 'Привязка союзов и предлогов в предыдущим словам в случае конца предложения',
+				'description'	=> 'Привязка союзов и предлогов к предыдущим словам в случае конца предложения',
 				'pattern' 		=> '/([a-zа-яё0-9\-]{3,}) ([a-zа-яё]{1,2})\.( [A-ZА-ЯЁ]|$)/u', 
 				'replacement' 	=> '\1&nbsp;\2.\3'
 			),
@@ -1882,7 +1910,7 @@ class EMT_Tret_Quote extends EMT_Tret
 					array(
 						'/([a-zа-яё0-9]|\.|\&hellip\;|\!|\?|\>|\)|\:)((\"|\\\"|\&laquo\;)+)(\<[^\>]+\>)(\.|\&hellip\;|\;|\:|\?|\!|\,|\)|\<\/|$| )/uie',
 						'/([a-zа-яё0-9]|\.|\&hellip\;|\!|\?|\>|\)|\:)(\s+)((\"|\\\")+)(\s+)(\.|\&hellip\;|\;|\:|\?|\!|\,|\)|\<\/|$| )/uie',
-						'/\>(\&laquo\;)\.($|\s)/ui',
+						'/\>(\&laquo\;)\.($|\s|\<)/ui',
 					),
 				'replacement' 	=> 
 					array(
@@ -2228,26 +2256,43 @@ class EMT_Tret_Text extends EMT_Tret
 		
 		);
 
+    /**
+	 * Расстановка защищенных тегов параграфа (<p>...</p>) и переноса строки
+	 *
+	 * @return  void
+	 */	
+	protected function do_paragraphs($text) {
+		$text = str_replace("\r\n","\n",$text);
+		$text = str_replace("\r","\n",$text);
+		$text = '<' . self::BASE64_PARAGRAPH_TAG . '>' . trim($text) . '</' . self::BASE64_PARAGRAPH_TAG . '>';
+		//$text = $this->preg_replace_e('/([\040\t]+)?(\n|\r){2,}/e', '"</" . self::BASE64_PARAGRAPH_TAG . "><" .self::BASE64_PARAGRAPH_TAG . ">"', $text);
+		//$text = $this->preg_replace_e('/([\040\t]+)?(\n){2,}/e', '"</" . self::BASE64_PARAGRAPH_TAG . "><" .self::BASE64_PARAGRAPH_TAG . ">"', $text);
+		$text = $this->preg_replace_e('/([\040\t]+)?(\n)+([\040\t]*)(\n)+/e', '$m[1]."</" . self::BASE64_PARAGRAPH_TAG . ">".EMT_Lib::iblock($m[2].$m[3])."<" .self::BASE64_PARAGRAPH_TAG . ">"', $text);
+		//$text = $this->preg_replace_e('/([\040\t]+)?(\n)+([\040\t]*)(\n)+/e', '"</" . self::BASE64_PARAGRAPH_TAG . ">"."<" .self::BASE64_PARAGRAPH_TAG . ">"', $text);
+		//может от открвающего до закрывающего ?!
+		$text = preg_replace('/\<' . self::BASE64_PARAGRAPH_TAG . '\>('.EMT_Lib::INTERNAL_BLOCK_OPEN.'[a-zA-Z0-9\/=]+?'.EMT_Lib::INTERNAL_BLOCK_CLOSE.')?\<\/' . self::BASE64_PARAGRAPH_TAG . '\>/s', "", $text);
+		return $text;
+	}
 		
 	/**
 	 * Расстановка защищенных тегов параграфа (<p>...</p>) и переноса строки
 	 *
 	 * @return  void
-	 */
+	 */	
 	protected function build_paragraphs()
 	{
-		
-		//$this->_text = $this->preg_replace_e('/(\<' . self::BASE64_PARAGRAPH_TAG . '\>)/ems', '$m[1].EMT_Lib::iblock($m[2]).$m[3]', $this->_text);
-		
-		if (!preg_match('/\<\/?' . self::BASE64_PARAGRAPH_TAG . '\>/', $this->_text)) {
-			$this->_text = str_replace("\r\n","\n",$this->_text);
-			$this->_text = str_replace("\r","\n",$this->_text);
-			$this->_text = '<' . self::BASE64_PARAGRAPH_TAG . '>' . trim($this->_text) . '</' . self::BASE64_PARAGRAPH_TAG . '>';
-			//$this->_text = $this->preg_replace_e('/([\040\t]+)?(\n|\r){2,}/e', '"</" . self::BASE64_PARAGRAPH_TAG . "><" .self::BASE64_PARAGRAPH_TAG . ">"', $this->_text);
-			//$this->_text = $this->preg_replace_e('/([\040\t]+)?(\n){2,}/e', '"</" . self::BASE64_PARAGRAPH_TAG . "><" .self::BASE64_PARAGRAPH_TAG . ">"', $this->_text);
-			$this->_text = $this->preg_replace_e('/([\040\t]+)?(\n)+([\040\t]*)(\n)+/e', '$m[1]."</" . self::BASE64_PARAGRAPH_TAG . ">".EMT_Lib::iblock($m[2].$m[3])."<" .self::BASE64_PARAGRAPH_TAG . ">"', $this->_text);
-			//$this->_text = $this->preg_replace_e('/([\040\t]+)?(\n)+([\040\t]*)(\n)+/e', '"</" . self::BASE64_PARAGRAPH_TAG . ">"."<" .self::BASE64_PARAGRAPH_TAG . ">"', $this->_text);
-			$this->_text = preg_replace('/\<' . self::BASE64_PARAGRAPH_TAG . '\>('.EMT_Lib::INTERNAL_BLOCK_OPEN.'[a-zA-Z0-9\/=]+?'.EMT_Lib::INTERNAL_BLOCK_CLOSE.')?\<\/' . self::BASE64_PARAGRAPH_TAG . '\>/s', "", $this->_text);
+		$r = mb_strpos($this->_text, '<' . self::BASE64_PARAGRAPH_TAG . '>' );
+		$p = EMT_Lib::rstrpos($this->_text, '</' . self::BASE64_PARAGRAPH_TAG . '>' )	;
+		if(($r!== false) && ($p !== false)) {			
+			
+			$beg = mb_substr($this->_text,0,$r);
+			$end = mb_substr($this->_text,$p+mb_strlen('</' . self::BASE64_PARAGRAPH_TAG . '>'));			
+			$this->_text = 
+							(trim($beg) ? $this->do_paragraphs($beg). "\n":"") .'<' . self::BASE64_PARAGRAPH_TAG . '>'.
+							mb_substr($this->_text,$r + mb_strlen('<' . self::BASE64_PARAGRAPH_TAG . '>'),$p -($r + mb_strlen('<' . self::BASE64_PARAGRAPH_TAG . '>')) ).'</' . self::BASE64_PARAGRAPH_TAG . '>'.
+							(trim($end) ? "\n".$this->do_paragraphs($end) :"") ;
+		} else {
+			$this->_text = $this->do_paragraphs($this->_text);
 		}
 	}
 	
@@ -3223,7 +3268,7 @@ class EMTypograph extends EMT_Base
 	 * @param array $options
 	 * @return string
 	 */
-	public function fast_apply($text, $options = null)
+	public static function fast_apply($text, $options = null)
 	{
 		$obj = new self();
 		if(is_array($options)) $obj->setup($options);
