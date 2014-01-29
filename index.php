@@ -42,13 +42,22 @@ if (!empty($_POST['options']) && is_array($_POST['options'])) {
 }
 
 try {
+    $text = $_POST['text'];
+
     if (!empty($setup)) {
         $typograf->setup($setup);
     }
 
-    $typograf->set_text($_POST['text']);
-
-    $result = $typograf->apply();
+    if (is_array($text)) {
+        $result = array();
+        foreach ($text as $key => $value) {
+            $typograf->set_text($value);
+            $result[$key] = $typograf->apply();
+        }
+    } else {
+        $typograf->set_text($text);
+        $result = $typograf->apply();
+    }
 
     $data = array('result' => $result);
 } catch (Exception $e) {
