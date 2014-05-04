@@ -2,8 +2,8 @@
 
 /**
 * Evgeny Muravjev Typograph, http://mdash.ru
-* Version: 3.2
-* Release Date: January 18, 2014
+* Version: 3.3 Gold Master
+* Release Date: May 4, 2014
 * Authors: Evgeny Muravjev & Alexander Drutsa  
 */
 
@@ -693,6 +693,9 @@ class EMT_Lib
 	    } 
 	}
 	
+	public static function ifop($cond, $true, $false) {
+		return $cond ? $true : $false;
+	}
 
 }
 
@@ -886,6 +889,7 @@ class EMT_Tret {
 				}
 				
 				$this->error('Функция '.$rule['function'].' из правила '.$rule['id']. " не найдена");
+				return ;
 			} else {
 				if(preg_match("/^[a-z_0-9]+$/i", $rule['function']))
 				{
@@ -1281,7 +1285,7 @@ class EMT_Tret_Abbr extends EMT_Tret
 			),						
 		'nobr_before_unit_volt' => array(
 				'description'	=> 'Установка пробельных символов в сокращении вольт',
-				'pattern' 		=> '/(\d+)(\040|\&nbsp\;)?в(\s|\.|\!|\?|\,|$)/iu', 
+				'pattern' 		=> '/(\d+)([вВ]| В)(\s|\.|\!|\?|\,|$)/u', 
 				'replacement' 	=> '\1&nbsp;В\3'
 			),				
 		'ps_pps' => array(
@@ -1310,7 +1314,7 @@ class EMT_Tret_Abbr extends EMT_Tret
 		'nbsp_money_abbr' => array(
 				'description'	=> 'Форматирование денежных сокращений (расстановка пробелов и привязка названия валюты к числу)',
 				'pattern' 		=> '/(\d)((\040|\&nbsp\;)?(тыс|млн|млрд)\.?(\040|\&nbsp\;)?)?(\040|\&nbsp\;)?(руб\.|долл\.|евро|€|&euro;|\$|у[\.]? ?е[\.]?)/ieu', 
-				'replacement' 	=> '$m[1].($m[4]?"&nbsp;".$m[4].($m[4]=="тыс"?".":""):"")."&nbsp;".(!preg_match("#у[\\\\.]? ?е[\\\\.]?#iu",$m[7])?$m[7]:"у.е.")'
+				'replacement' 	=> '$m[1].($m[4]?"&nbsp;".$m[4].($m[4]=="тыс"?".":""):"")."&nbsp;".(!preg_match("#у[\\\\.]? ?е[\\\\.]?#iu",$m[7])?$m[7]:"у.е.")',
 			),
 		'nbsp_org_abbr' => array(
 				'description'	=> 'Привязка сокращений форм собственности к названиям организаций',
@@ -1441,7 +1445,7 @@ class EMT_Tret_Date extends EMT_Tret
 		'years' => array(
 				'description'	=> 'Установка тире и пробельных символов в периодах дат',
 				'pattern' 		=> '/(с|по|период|середины|начала|начало|конца|конец|половины|в|между|\([cс]\)|\&copy\;)(\s+|\&nbsp\;)([\d]{4})(-|\&mdash\;|\&minus\;)([\d]{4})(( |\&nbsp\;)?(г\.г\.|гг\.|гг|г\.|г)([^а-яёa-z]))?/eui',
-				'replacement' 	=> '$m[1].$m[2].  (intval($m[3]>=intval($m[5]))? $m[3].$m[4].$m[5] : $m[3]."&mdash;".$m[5]) . (isset($m[6])? "&nbsp;гг.":"").(isset($m[9])?$m[9]:"")'
+				'replacement' 	=> '$m[1].$m[2].  (intval($m[3])>=intval($m[5])? $m[3].$m[4].$m[5] : $m[3]."&mdash;".$m[5]) . (isset($m[6])? "&nbsp;гг.":"").(isset($m[9])?$m[9]:"")'
 			),
 		'mdash_month_interval' => array(
 				'description'	=> 'Расстановка тире и объединение в неразрывные периоды месяцев',
@@ -1553,6 +1557,8 @@ class EMT_Tret_Etc extends EMT_Tret
 	}
 	
 }
+
+
 
 
 /**
@@ -1692,8 +1698,8 @@ class EMT_Tret_Number extends EMT_Tret
 		'auto_times_x' => array(
 				'description'	=> 'Замена x на символ × в размерных единицах',
 				'cycled' 		=> true,
-				'pattern' 		=> '/(\&times\;)?(\d+)(\040*)(x|х)(\040*)(\d+)/u',
-				'replacement' 	=> '\1\2&times;\6'
+				'pattern' 		=> '/([^a-zA-Z><]|^)(\&times\;)?(\d+)(\040*)(x|х)(\040*)(\d+)([^a-zA-Z><]|$)/u',
+				'replacement' 	=> '\1\2\3&times;\7\8'
 			),
 		'numeric_sub' => array(
 				'description'	=> 'Нижний индекс',
@@ -1770,19 +1776,24 @@ class EMT_Tret_OptAlign extends EMT_Tret
 	public $rules = array(	
 		'oa_oquote' => array(
 				'description'	=> 'Оптическое выравнивание открывающей кавычки',
-				'disabled'      => true,	
+				//'disabled'      => true,	
 				'pattern' 		=> array(
 							'/([a-zа-яё\-]{3,})(\040|\&nbsp\;|\t)(\&laquo\;)/uie',
 							'/(\n|\r|^)(\&laquo\;)/ei'
 						),
 				'replacement' 	=> array(
 							'$m[1] . $this->tag($m[2], "span", array("class"=>"oa_oqoute_sp_s")) . $this->tag($m[3], "span", array("class"=>"oa_oqoute_sp_q"))',
-							'$m[1] . $this->tag($m[2], "span", array("class"=>"oa_oquote_nl"))',				
+							'$m[1] . $this->tag($m[2], "span", array("class"=>"oa_oquote_nl"))',
 						),
 			),
+		'oa_oquote_extra' => array(
+			'description'	=> 'Оптическое выравнивание кавычки',
+			//'disabled'      => true,	
+			'function'	=> 'oaquote_extra'
+		),
 		'oa_obracket_coma' => array(
 				'description'	=> 'Оптическое выравнивание для пунктуации (скобка и запятая)',
-				'disabled'      => true,	
+				//'disabled'      => true,	
 				'pattern' 		=> array(
 							'/(\040|\&nbsp\;|\t)\(/ei',
 							'/(\n|\r|^)\(/ei',
@@ -1796,6 +1807,19 @@ class EMT_Tret_OptAlign extends EMT_Tret
 			),					
 		
 		);
+		
+	/**
+	 * Если стоит открывающая кавычка после <p> надо делать её висячей
+	 *
+	 * @return  void
+	 */	
+	protected function oaquote_extra()
+	{
+		$this->_text = $this->preg_replace_e(
+				'/(<' .self::BASE64_PARAGRAPH_TAG . '>)([\040\t]+)?(\&laquo\;)/e', 
+				'$m[1] . $this->tag($m[3], "span", array("class"=>"oa_oquote_nl"))',
+				$this->_text);
+	}
 	
 	
 }
@@ -1862,7 +1886,7 @@ class EMT_Tret_Punctmark extends EMT_Tret
 		'dot_on_end' => array(
 				'description'	=> 'Точка в конце текста, если её там нет',
 				'disabled'      => true,				
-				'pattern' 		=> '/([a-zа-яё0-9])$/ui',
+				'pattern' 		=> '/([a-zа-яё0-9])(\040|\t|\&nbsp\;)*$/ui',
 				//'pattern' 		=> '/(([^\.\!\?])|(&(ra|ld)quo;))$/',
 				'replacement' 	=> '\1.'
 			),
@@ -1895,7 +1919,7 @@ class EMT_Tret_Quote extends EMT_Tret
 			
 		'open_quote' => array(
 				'description'	=> 'Открывающая кавычка',
-				'pattern' 		=> '/(^|\(|\s|\>)(\"|\\\")(\S+)/iue',
+				'pattern' 		=> '/(^|\(|\s|\>|-)(\"|\\\")(\S+)/iue',
 				'replacement' 	=> '$m[1] . self::QUOTE_FIRS_OPEN . $m[3]'
 			),
 		'close_quote' => array(
@@ -1911,12 +1935,14 @@ class EMT_Tret_Quote extends EMT_Tret
 						'/([a-zа-яё0-9]|\.|\&hellip\;|\!|\?|\>|\)|\:)((\"|\\\"|\&laquo\;)+)(\<[^\>]+\>)(\.|\&hellip\;|\;|\:|\?|\!|\,|\)|\<\/|$| )/uie',
 						'/([a-zа-яё0-9]|\.|\&hellip\;|\!|\?|\>|\)|\:)(\s+)((\"|\\\")+)(\s+)(\.|\&hellip\;|\;|\:|\?|\!|\,|\)|\<\/|$| )/uie',
 						'/\>(\&laquo\;)\.($|\s|\<)/ui',
+						'/\>(\&laquo\;),($|\s|\<|\S)/ui',
 					),
 				'replacement' 	=> 
 					array(
 						'$m[1] . str_repeat(self::QUOTE_FIRS_CLOSE, substr_count($m[2],"\"")+substr_count($m[2],"&laquo;") ) . $m[4]. $m[5]',
 						'$m[1] .$m[2]. str_repeat(self::QUOTE_FIRS_CLOSE, substr_count($m[3],"\"")+substr_count($m[3],"&laquo;") ) . $m[5]. $m[6]',
 						'>&raquo;.\2',
+						'>&raquo;,\2',
 					),
 			),
 		'open_quote_adv' => array(
@@ -2029,6 +2055,11 @@ class EMT_Tret_Quote extends EMT_Tret
 }
 
 
+
+
+
+
+
 /**
  * @see EMT_Tret
  */
@@ -2051,8 +2082,8 @@ class EMT_Tret_Space extends EMT_Tret
 			),
 		'remove_space_before_punctuationmarks' => array(
 				'description'	=> 'Удаление пробела перед точкой, запятой, двоеточием, точкой с запятой',
-				'pattern' 		=> '/(\040|\t|\&nbsp\;)([\,\:\.\;\?])(\s+|$)/', 
-				'replacement' 	=> '\2\3'
+				'pattern' 		=> '/((\040|\t|\&nbsp\;)+)([\,\:\.\;\?])(\s+|$)/', 
+				'replacement' 	=> '\3\4'
 			),					
 		'autospace_after_comma' => array(
 				'description'	=> 'Пробел после запятой',
@@ -2078,7 +2109,7 @@ class EMT_Tret_Space extends EMT_Tret
 						),
 				'replacement' 	=> array(
 						'\1\2. \4',
-						'$m[1].$m[2]."." .(in_array(EMT_lib::strtolower($m[3]), $this->domain_zones)? "":" "). $m[3]'
+						'$m[1].$m[2]."." .(in_array(EMT_Lib::strtolower($m[3]), $this->domain_zones)? "":" "). $m[3]'
 						),
 			),	
 		'autospace_after_hellips' => array(
@@ -2226,7 +2257,7 @@ class EMT_Tret_Text extends EMT_Tret
 		'auto_links' => array(
 				'description'	=> 'Выделение ссылок из текста',
 				'pattern' 		=> '/(\s|^)(http|ftp|mailto|https)(:\/\/)([^\s\,\!\<]{4,})(\s|\.|\,|\!|\?|\<|$)/ieu', 
-				'replacement' 	=> '$m[1] . $this->tag(substr($m[4],-1)=="."?substr($m[4],0,-1):$m[4], "a", array("href" => $m[2].$m[3].(substr($m[4],-1)=="."?substr($m[4],0,-1):$m[4]))) . (substr($m[4],-1)=="."?".":"") .$m[5]'
+				'replacement' 	=> '$m[1] . $this->tag((substr($m[4],-1)=="."?substr($m[4],0,-1):$m[4]), "a", array("href" => $m[2].$m[3].(substr($m[4],-1)=="."?substr($m[4],0,-1):$m[4]))) . (substr($m[4],-1)=="."?".":"") .$m[5]'
 			),
 		'email' => array(
 				'description'	=> 'Выделение эл. почты из текста',
@@ -3151,6 +3182,7 @@ class EMTypograph extends EMT_Base
 		'OptAlign.all' => array( 'description' => 'Inline стили или CSS', 'hide' => true, 'selector' => 'OptAlign.*'),
 		'OptAlign.oa_oquote' => 'direct',	
 		'OptAlign.oa_obracket_coma' => 'direct',	
+		'OptAlign.oa_oquote_extra' => 'direct',	
 		'OptAlign.layout' => array( 'description' => 'Inline стили или CSS' ),
 		
 		'Text.paragraphs' => 'direct',
