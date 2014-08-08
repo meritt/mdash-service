@@ -54,10 +54,8 @@ Assume your site address is `http://mdash.local`, and the folder with to be mdas
 
 ## Author
 
-* [Alexey Simonenko](mailto:alexey@simonenko.su), [simonenko.su](http://simonenko.su)
+  - [Alexey Simonenko](https://github.com/meritt)
 
 ## License
 
 The public domain license, see the included `License.md` file.
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/meritt/mdash-service/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
