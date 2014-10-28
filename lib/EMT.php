@@ -2,8 +2,8 @@
 
 /**
 * Evgeny Muravjev Typograph, http://mdash.ru
-* Version: 3.3 Gold Master
-* Release Date: May 4, 2014
+* Version: 3.4 Gold Master
+* Release Date: September 20, 2014
 * Authors: Evgeny Muravjev & Alexander Drutsa
 */
 
@@ -305,7 +305,7 @@ class EMT_Lib
      */
     public static function encrypt_tag($text)
     {
-    	return base64_encode($text);
+    	return base64_encode($text)."=";
     }
 
     /**
@@ -316,7 +316,7 @@ class EMT_Lib
      */
     public static function decrypt_tag($text)
     {
-    	return base64_decode($text);
+    	return base64_decode(substr($text,0,-1));
     }
 
 
@@ -742,10 +742,10 @@ class EMT_Tret {
 	 *
 	 * @todo привязать к методам из Jare_Typograph_Tool
 	 */
-	const BASE64_PARAGRAPH_TAG = 'cA=='; // p
-	const BASE64_BREAKLINE_TAG = 'YnIgLw=='; // br / (с пробелом и слэшем)
-	const BASE64_NOBR_OTAG = 'bm9icg=='; // nobr
-	const BASE64_NOBR_CTAG = 'L25vYnI='; // /nobr
+	const BASE64_PARAGRAPH_TAG = 'cA==='; // p
+	const BASE64_BREAKLINE_TAG = 'YnIgLw==='; // br / (с пробелом и слэшем)
+	const BASE64_NOBR_OTAG = 'bm9icg==='; // nobr
+	const BASE64_NOBR_CTAG = 'L25vYnI=='; // /nobr
 
 	/**
 	 * Типы кавычек
@@ -1295,15 +1295,16 @@ class EMT_Tret_Abbr extends EMT_Tret
 			),
 		'nobr_vtch_itd_itp'     => array(
 				'description'	=> 'Объединение сокращений и т.д., и т.п., в т.ч.',
+				'cycled'		=> true,
 				'pattern' 		=> array(
-						'/(\s|\&nbsp\;)и( |\&nbsp\;)т\.?[ ]?д\./ue',
-						'/(\s|\&nbsp\;)и( |\&nbsp\;)т\.?[ ]?п\./ue',
-						'/(\s|\&nbsp\;)в( |\&nbsp\;)т\.?[ ]?ч\./ue',
+						'/(^|\s|\&nbsp\;)и( |\&nbsp\;)т\.?[ ]?д(\.|$|\s|\&nbsp\;)/ue',
+						'/(^|\s|\&nbsp\;)и( |\&nbsp\;)т\.?[ ]?п(\.|$|\s|\&nbsp\;)/ue',
+						'/(^|\s|\&nbsp\;)в( |\&nbsp\;)т\.?[ ]?ч(\.|$|\s|\&nbsp\;)/ue',
 					),
 				'replacement' 	=> array(
-						'$m[1].$this->tag("и т. д.", "span",  array("class" => "nowrap"))',
-						'$m[1].$this->tag("и т. п.", "span",  array("class" => "nowrap"))',
-						'$m[1].$this->tag("в т. ч.", "span",  array("class" => "nowrap"))',
+						'$m[1].$this->tag("и т. д.", "span",  array("class" => "nowrap")).($m[3]!="."? $m[3] : "" )',
+						'$m[1].$this->tag("и т. п.", "span",  array("class" => "nowrap")).($m[3]!="."? $m[3] : "" )',
+						'$m[1].$this->tag("в т. ч.", "span",  array("class" => "nowrap")).($m[3]!="."? $m[3] : "" )',
 					)
 			),
 		'nbsp_te'     => array(
@@ -1607,13 +1608,17 @@ class EMT_Tret_Nobr extends EMT_Tret
 				'description'	=> 'Привязка инициалов к фамилиям',
 				'pattern' 		=>
 					array(
-						'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([A-ZА-ЯЁ])\.?(\s|\&nbsp\;)?([A-ZА-ЯЁ])(\.(\s|\&nbsp\;)?|(\s|\&nbsp\;))([A-ZА-ЯЁ][a-zа-яё]+)(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
-						'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([A-ZА-ЯЁ][a-zа-яё]+)(\s|\&nbsp\;)([A-ZА-ЯЁ])\.?(\s|\&nbsp\;)?([A-ZА-ЯЁ])\.?(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
+						'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([А-ЯЁ])\.?(\s|\&nbsp\;)?([А-ЯЁ])(\.(\s|\&nbsp\;)?|(\s|\&nbsp\;))([А-ЯЁ][а-яё]+)(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
+						'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([А-ЯЁ][а-яё]+)(\s|\&nbsp\;)([А-ЯЁ])\.?(\s|\&nbsp\;)?([А-ЯЁ])\.?(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
+						//'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([A-Z])\.?(\s|\&nbsp\;)?([A-Z])(\.(\s|\&nbsp\;)?|(\s|\&nbsp\;))([A-Z][a-z]+)(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
+						//'/(\s|^|\.|\,|\;|\:|\?|\!|\&nbsp\;)([A-Z][a-z]+)(\s|\&nbsp\;)([A-Z])\.?(\s|\&nbsp\;)?([A-Z])\.?(\s|$|\.|\,|\;|\:|\?|\!|\&nbsp\;)/ue',
 					),
 				'replacement' 	=>
 					array(
 						'$m[1].$this->tag($m[2].". ".$m[4].". ".$m[8], "span",  array("class" => "nowrap")).$m[9]',
 						'$m[1].$this->tag($m[2]." ".$m[4].". ".$m[6].".", "span",  array("class" => "nowrap")).$m[7]',
+						//'$m[1].$this->tag($m[2].". ".$m[4].". ".$m[8], "span",  array("class" => "nowrap")).$m[9]',
+						//'$m[1].$this->tag($m[2]." ".$m[4].". ".$m[6].".", "span",  array("class" => "nowrap")).$m[7]',
 					),
 			),
 		'nbsp_before_particle' => array(
@@ -1718,9 +1723,8 @@ class EMT_Tret_Number extends EMT_Tret
 			),
 		'math_chars' => array(
 				'description'	=> 'Математические знаки больше/меньше/плюс минус/неравно',
-				'simple_replace' => true,
-				'pattern' 		=> array('!=', '<=', '>=', '~=', '+-'),
-				'replacement' 	=> array('&ne;', '&le;', '&ge;', '&cong;', '&plusmn;' )
+				'pattern' 		=> array('/!=/', '/\<=/', '/([^=]|^)\>=/', '/~=/', '/\+-/'),
+				'replacement' 	=> array('&ne;', '&le;', '\1&ge;', '&cong;', '&plusmn;' )
 			),
 			/*
 		'split_number_to_triads' => array(
@@ -1936,6 +1940,7 @@ class EMT_Tret_Quote extends EMT_Tret
 						'/([a-zа-яё0-9]|\.|\&hellip\;|\!|\?|\>|\)|\:)(\s+)((\"|\\\")+)(\s+)(\.|\&hellip\;|\;|\:|\?|\!|\,|\)|\<\/|$| )/uie',
 						'/\>(\&laquo\;)\.($|\s|\<)/ui',
 						'/\>(\&laquo\;),($|\s|\<|\S)/ui',
+						'/\>(\&laquo\;):($|\s|\<|\S)/ui',
 					),
 				'replacement' 	=>
 					array(
@@ -1943,6 +1948,7 @@ class EMT_Tret_Quote extends EMT_Tret
 						'$m[1] .$m[2]. str_repeat(self::QUOTE_FIRS_CLOSE, substr_count($m[3],"\"")+substr_count($m[3],"&laquo;") ) . $m[5]. $m[6]',
 						'>&raquo;.\2',
 						'>&raquo;,\2',
+						'>&raquo;:\2',
 					),
 			),
 		'open_quote_adv' => array(
@@ -2068,7 +2074,8 @@ class EMT_Tret_Space extends EMT_Tret
 {
 	public $title = "Расстановка и удаление пробелов";
 
-	public $domain_zones = array('ru','ру','com','ком','org','орг', 'уа', 'ua');
+	public $domain_zones = array('ru','ру','ком','орг', 'уа', 'ua', 'uk', 'co', 'fr',
+	                             'com', 'net', 'edu', 'gov', 'org', 'mil', 'int', 'info', 'biz', 'info', 'name', 'pro');
 
 	public $classes = array(
 			'nowrap'           => 'word-spacing:nowrap;',
@@ -2104,12 +2111,13 @@ class EMT_Tret_Space extends EMT_Tret
 		'autospace_after_dot' => array(
 				'description'	=> 'Пробел после точки',
 				'pattern' 		=> array(
-						'/(\040|\t|\&nbsp\;|^)([a-zа-яё0-9]+)(\040|\t|\&nbsp\;)?\.([а-яёa-z]{4,})/iu',
-						'/(\040|\t|\&nbsp\;|^)([a-zа-яё0-9]+)\.([а-яёa-z]{1,3})/iue',
+						'/(\040|\t|\&nbsp\;|^)([a-zа-яё0-9]+)(\040|\t|\&nbsp\;)?\.([а-яёa-z]{5,})($|[^a-zа-яё])/iue',
+						'/(\040|\t|\&nbsp\;|^)([a-zа-яё0-9]+)\.([а-яёa-z]{1,4})($|[^a-zа-яё])/iue',
 						),
 				'replacement' 	=> array(
-						'\1\2. \4',
-						'$m[1].$m[2]."." .(in_array(EMT_Lib::strtolower($m[3]), $this->domain_zones)? "":" "). $m[3]'
+						//'\1\2. \4',
+						'$m[1].$m[2]."." .( $m[5] == "." ? "" : " ").$m[4].$m[5]',
+						'$m[1].$m[2]."." .(in_array(EMT_Lib::strtolower($m[3]), $this->domain_zones)? "":( $m[4] == "." ? "" : " ")). $m[3].$m[4]'
 						),
 			),
 		'autospace_after_hellips' => array(
@@ -2464,7 +2472,7 @@ class EMT_Base
      */
     private function _add_safe_block($id, $open, $close, $tag)
     {
-    	$this->_safe_blocks[$id] = array(
+    	$this->_safe_blocks[] = array(
     			'id' => $id,
     			'tag' => $tag,
     			'open' =>  $open,
@@ -2490,7 +2498,9 @@ class EMT_Base
      */
     public function remove_safe_block($id)
     {
-    	unset($this->_safe_blocks[$id]);
+    	foreach($this->_safe_blocks as $k => $block) {
+    		if($block['id']==$id) unset($this->_safe_blocks[$k]);
+    	}
     }
 
 
@@ -2550,7 +2560,8 @@ class EMT_Base
     	if (count($this->_safe_blocks))
     	{
     		$safeType = true === $way ? "EMT_Lib::encrypt_tag(\$m[2])" : "stripslashes(EMT_Lib::decrypt_tag(\$m[2]))";
-       		foreach ($this->_safe_blocks as $block)
+    		$safeblocks = true === $way ? $this->_safe_blocks : array_reverse($this->_safe_blocks);
+       		foreach ($safeblocks as $block)
        		{
         		$text = preg_replace_callback("/({$block['open']})(.+?)({$block['close']})/s",   create_function('$m','return $m[1].'.$safeType . '.$m[3];')   , $text);
         	}
@@ -3179,7 +3190,7 @@ class EMTypograph extends EMT_Base
 		'Abbr.nobr_before_unit_volt' => 'direct',
 		'Abbr.nbsp_before_unit' => 'direct',
 
-		'OptAlign.all' => array( 'description' => 'Inline стили или CSS', 'hide' => true, 'selector' => 'OptAlign.*'),
+		'OptAlign.all' => array( 'description' => 'Все настройки оптического выравнивания', 'hide' => true, 'selector' => 'OptAlign.*'),
 		'OptAlign.oa_oquote' => 'direct',
 		'OptAlign.oa_obracket_coma' => 'direct',
 		'OptAlign.oa_oquote_extra' => 'direct',
