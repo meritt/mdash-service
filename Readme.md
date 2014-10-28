@@ -1,6 +1,6 @@
 # mdash-service
 
-A realisation php service for an [EMT typographer](http://mdash.ru) API endpoint, written by Evgeny Muravjev. Works well with [node-mdash](https://github.com/meritt/node-mdash).
+A realisation php service for an [EMT typographer](https://github.com/emuravjev/mdash) API endpoint, written by Evgeny Muravjev. Works well with [node-mdash](https://github.com/meritt/node-mdash).
 
 ## How to run
 
